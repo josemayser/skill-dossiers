@@ -1,0 +1,51 @@
+# === LaTeX build artifacts ===
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+*.nav
+*.snm
+*.vrb
+*.idx
+*.ilg
+*.ind
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.ist
+
+# minted / pygments
+_minted*
+*.pyg
+
+# latexmk
+*.latexmk
+
+# === Output folders ===
+build/
+out/
+dist/
+**/build/
+**/out/
+**/dist/
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === IDEs ===
+.idea/
+*.iml
+.vscode/

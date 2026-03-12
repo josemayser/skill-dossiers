@@ -1,0 +1,60 @@
+\section{Scope}
+
+\subsection{Purpose}
+This dossier is designed to help you master SQL as a professional skill from Junior $\rightarrow$ Mid 
+$\rightarrow$ Senior $\rightarrow$ Expert, with a focus on conceptual understanding, decision-making, 
+and real-world correctness (not tool tutorials). It is also interview-ready because you'll be able 
+to explain concepts clearly.
+
+\subsection{Primary Reference DBMS}
+PostgreSQL is the reference dialect and feature set. It will include short ``Cross-DB Notes'' 
+only when differences matter (MySQL and SQL Server).
+
+\subsection{What this dossier includes}
+\subsubsection{Core SQL querying (baseline to advanced)}
+\begin{itemize}
+    \item SELECT fundamentals: filtering, ordering, limiting
+    \item Joins: inner/left/right/full, anti-joins
+    \item Aggregations: GROUP BY, HAVING, grouping pitfalls
+    \item Subqueries and set operations: IN/EXISTS, UNION/INTERSECT/EXCEPT
+    \item CTEs (WITH): readability and recursion (conceptual)
+    \item Window functions: ranking, running totals, partitions (high-value)
+\end{itemize}
+
+\subsubsection{Relational design essentials (SQL-engineer level)}
+\begin{itemize}
+    \item Relational model fundamentals: keys, relationships, cardinality
+    \item Normalization basics (1NF--3NF) and when to denormalize
+    \item Constraints: primary key, foreign key, unique, check, not null
+    \item Data types: conceptual use, correctness and tradeoffs
+\end{itemize}
+
+\subsubsection{Performance \& tuning (senior differentiator)}
+\begin{itemize}
+    \item Query plans (EXPLAIN) at a practical conceptual level
+    \item Index fundamentals: selectivity, composite indexes, covering/index-only concepts
+    \item Common performance anti-patterns: N+1, missing predicates, bad joins, over-fetching
+    \item Reasoning about cost: scans vs index lookups, cardinality intuition
+\end{itemize}
+
+\subsubsection{Transactions \& concurrency (must for senior)}
+\begin{itemize}
+    \item ACID concepts applied to real systems
+    \item Isolation levels (practical understanding)
+    \item Locking and deadlocks (conceptual + what causes them)
+    \item Idempotency and safe retries (how SQL behavior impacts application behavior)
+\end{itemize}
+
+\subsubsection{Production practices (SQL-adjacent, not DBA)}
+\begin{itemize}
+    \item Schema migrations (conceptual): backward compatibility, zero-downtime changes (high-level)
+    \item Security essentials: SQL injection principles, least privilege, roles (conceptual)
+\end{itemize}
+
+\subsection{What this dossier intentionally excludes}
+\begin{itemize}
+    \item Deep DBA topics: replication, HA, backups, server tuning, vacuum internals
+    \item Deep planner internals research
+    \item Stored procedures / triggers as a main skill (we may mention them briefly)
+    \item Vendor-specific deep dives beyond essential differences
+\end{itemize}

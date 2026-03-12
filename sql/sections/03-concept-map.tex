@@ -1,0 +1,118 @@
+\section{Concept Map / Index (Reading Order)}
+
+This is the recommended reading order for mastering SQL efficiently. It's organized from 
+core correctness $\rightarrow$ advanced querying $\rightarrow$ design $\rightarrow$ performance 
+$\rightarrow$ production.
+
+\subsection{Core Querying Foundations (J $\rightarrow$ M)}
+
+\subsubsection{SELECT Essentials}
+\begin{itemize}
+    \item SELECT, FROM, WHERE, ORDER BY, LIMIT/OFFSET
+    \item filtering logic, operator precedence
+    \item NULL semantics (IS NULL, three-valued logic basics)
+\end{itemize}
+
+\subsubsection{Joins \& Relational Thinking}
+\begin{itemize}
+    \item INNER, LEFT, RIGHT, FULL
+    \item join conditions, join keys
+    \item duplicates and join multiplicity (why row counts ``explode'')
+\end{itemize}
+
+\subsubsection{Aggregation \& Grouping}
+\begin{itemize}
+    \item GROUP BY, aggregates, HAVING
+    \item grouping correctness rules
+    \item distinct vs group, counting pitfalls
+\end{itemize}
+
+\subsubsection{Subqueries \& Set Operations}
+\begin{itemize}
+    \item scalar vs table subqueries
+    \item EXISTS vs IN
+    \item UNION / UNION ALL, INTERSECT, EXCEPT
+    \item anti-joins (NOT EXISTS) patterns
+\end{itemize}
+
+\subsection{Advanced Querying (M $\rightarrow$ S)}
+
+\subsubsection{CTEs (WITH)}
+\begin{itemize}
+    \item readability and decomposition
+    \item recursive CTEs (conceptual use cases)
+\end{itemize}
+
+\subsubsection{Window Functions}
+\begin{itemize}
+    \item ranking: ROW\_NUMBER, RANK, DENSE\_RANK
+    \item analytic windows: SUM/AVG OVER, moving totals
+    \item partitions and frames (conceptual)
+\end{itemize}
+
+\subsubsection{Data Types \& Built-in Functions (Practical Core)}
+\begin{itemize}
+    \item numeric/text/date-time types (conceptual correctness)
+    \item casting, formatting, common pitfalls (timezone awareness)
+\end{itemize}
+
+\subsection{Relational Design Essentials (J $\rightarrow$ S)}
+
+\subsubsection{Keys, Constraints, and Integrity}
+\begin{itemize}
+    \item primary keys, foreign keys, unique, check, not null
+    \item why constraints prevent bugs
+\end{itemize}
+
+\subsubsection{Normalization \& Modeling Tradeoffs}
+\begin{itemize}
+    \item 1NF--3NF basics
+    \item when and why to denormalize
+    \item modeling one-to-many / many-to-many
+\end{itemize}
+
+\subsection{Performance \& Tuning (M $\rightarrow$ E)}
+
+\subsubsection{Indexing Fundamentals}
+\begin{itemize}
+    \item what indexes do, selectivity
+    \item composite indexes (order matters conceptually)
+    \item write overhead tradeoffs
+\end{itemize}
+
+\subsubsection{Query Plans (EXPLAIN)}
+\begin{itemize}
+    \item scans vs index scans
+    \item join strategies (high-level)
+    \item cardinality estimation intuition
+\end{itemize}
+
+\subsubsection{Query Optimization Patterns}
+\begin{itemize}
+    \item avoid unnecessary work (filter early)
+    \item reduce row explosion (join strategy)
+    \item remove N+1 at app/DB boundary
+    \item correct pagination strategies (offset vs keyset)
+\end{itemize}
+
+\subsection{Transactions, Concurrency, and Production (S $\rightarrow$ E)}
+
+\subsubsection{Transactions \& Isolation}
+\begin{itemize}
+    \item ACID applied
+    \item isolation levels and anomalies (practical)
+    \item safe retries and idempotency
+\end{itemize}
+
+\subsubsection{Locking \& Deadlocks (Conceptual + Practical)}
+\begin{itemize}
+    \item common causes
+    \item how to reduce risk via query and transaction design
+\end{itemize}
+
+\subsubsection{Production SQL Essentials}
+\begin{itemize}
+    \item schema migrations (backward compatibility concepts)
+    \item zero-downtime change mindset (high-level)
+    \item security essentials: SQL injection, least privilege (conceptual)
+\end{itemize}

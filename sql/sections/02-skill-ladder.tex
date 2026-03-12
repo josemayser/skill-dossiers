@@ -1,0 +1,153 @@
+\section{Skill Ladder}
+
+Use this ladder to self-assess your current level. A good rule: you ``own'' a level when 
+you can explain it clearly and apply it consistently in real scenarios.
+
+\subsection{Junior (Foundations)}
+\textbf{You can:}
+\begin{itemize}
+    \item Write correct queries using:
+    \begin{itemize}
+        \item SELECT, WHERE, ORDER BY, LIMIT/OFFSET
+        \item basic JOINs (mostly INNER and LEFT)
+        \item GROUP BY + common aggregates (COUNT, SUM, AVG, MIN, MAX)
+    \end{itemize}
+    \item Understand core relational concepts:
+    \begin{itemize}
+        \item tables/rows/columns
+        \item primary keys vs foreign keys (at a basic level)
+        \item what duplicates are and why they appear
+    \end{itemize}
+    \item Handle NULLs reasonably:
+    \begin{itemize}
+        \item understand that NULL is not equal to anything
+        \item use IS NULL / IS NOT NULL
+    \end{itemize}
+    \item Do safe data changes:
+    \begin{itemize}
+        \item INSERT, UPDATE, DELETE with correct filtering (avoid ``update all rows'')
+    \end{itemize}
+    \item Use basic subqueries and IN (with awareness that NULL can affect results)
+\end{itemize}
+
+\textbf{Signals you're Junior+:}
+\begin{itemize}
+    \item You rarely break queries with syntax errors.
+    \item You can explain what a query does line-by-line.
+\end{itemize}
+
+\subsection{Mid (Productive Professional)}
+\textbf{You can:}
+\begin{itemize}
+    \item Use advanced querying patterns:
+    \begin{itemize}
+        \item EXISTS vs IN (and why EXISTS is often safer)
+        \item anti-joins (NOT EXISTS) for ``find missing'' cases
+        \item set operations (UNION, INTERSECT, EXCEPT) when appropriate
+    \end{itemize}
+    \item Build reliable aggregates:
+    \begin{itemize}
+        \item correct use of HAVING
+        \item avoid grouping mistakes (selecting non-grouped columns)
+        \item handle duplicates and join multiplicity intentionally
+    \end{itemize}
+    \item Use CTEs (WITH) for readability and decomposition.
+    \newpage
+    \item Use window functions (basic):
+    \begin{itemize}
+        \item ROW\_NUMBER, RANK, DENSE\_RANK
+        \item SUM(...) OVER (PARTITION BY ...) for running totals
+    \end{itemize}
+    \item Understand indexing conceptually:
+    \begin{itemize}
+        \item what an index is, how it speeds lookups
+        \item why indexes can slow down writes
+        \item basic idea of composite indexes
+    \end{itemize}
+    \item Understand transactions at a working level:
+    \begin{itemize}
+        \item why transactions exist
+        \item commit/rollback
+        \item what ``read committed'' generally means (conceptually)
+    \end{itemize}
+\end{itemize}
+
+\textbf{Signals you’re Mid+:}
+\begin{itemize}
+    \item You can design queries that stay correct as data grows.
+    \item You can explain why a query returns too many rows (join multiplicity).
+\end{itemize}
+
+\subsection{Senior (Engineering Mastery)}
+\textbf{You can:}
+\begin{itemize}
+    \item Diagnose and improve query performance using query plans (conceptual + practical reading):
+    \begin{itemize}
+        \item explain EXPLAIN output at a high level (scans, joins, estimated rows)
+        \item reason about selectivity and cardinality
+        \item identify missing/wrong indexes and rewrite queries when needed
+    \end{itemize}
+    \item Design schemas with integrity and tradeoffs:
+    \begin{itemize}
+        \item normalization to 3NF and when to denormalize
+        \item choose constraints intentionally (PK/FK/unique/check)
+        \item understand how schema design impacts query complexity/performance
+    \end{itemize}
+    \item Handle concurrency and correctness:
+    \begin{itemize}
+        \item isolation levels and anomalies (dirty/non-repeatable/phantom reads) at a practical level
+        \item understand locking and how deadlocks can happen
+        \item write SQL that is safe under concurrent updates (conceptually)
+    \end{itemize}
+    \item Build reliable production queries:
+    \begin{itemize}
+        \item pagination patterns and their tradeoffs (offset vs keyset/cursor)
+        \item avoid N+1 patterns across app $\leftrightarrow$ DB boundaries
+        \item reason about idempotency and safe retries (application + DB)
+    \end{itemize}
+    \newpage
+    \item Communicate clearly:
+    \begin{itemize}
+        \item explain tradeoffs to developers and stakeholders (e.g., ``why this query is slow'', ``why this schema is safer'')
+    \end{itemize}
+\end{itemize}
+
+\textbf{Signals you’re Senior+:}
+\begin{itemize}
+    \item You can look at a slow query and propose 2--3 plausible causes and next steps (plan, indexes, rewrite).
+    \item You can design data models that reduce bugs through constraints, not just application logic.
+\end{itemize}
+
+\subsection{Expert (Deep Reliability + Optimization + Strategy)}
+\textbf{You can:}
+\begin{itemize}
+    \item Perform advanced performance reasoning:
+    \begin{itemize}
+        \item choose composite/covering indexes strategically
+        \item understand join strategies (nested loop vs hash join) conceptually
+        \item estimate which part of a query is the bottleneck
+    \end{itemize}
+    \item Design for scale:
+    \begin{itemize}
+        \item partitioning concepts (why/when)
+        \item large-data pagination strategies at scale
+        \item write queries that remain stable and predictable with huge datasets
+    \end{itemize}
+    \item Lead DB-related engineering decisions:
+    \begin{itemize}
+        \item define SQL standards for teams (patterns, review checklist)
+        \item plan safe schema evolution (backward-compatible, zero-downtime concepts)
+        \item advise on tradeoffs: OLTP vs analytics patterns (conceptually)
+    \end{itemize}
+    \item Security and governance awareness:
+    \begin{itemize}
+        \item least privilege and access control concepts
+        \item SQL injection threat model and prevention principles (from both SQL and application sides)
+    \end{itemize}
+\end{itemize}
+
+\textbf{Signals you’re Expert+:}
+\begin{itemize}
+    \item You can guide others through performance incidents and propose durable fixes.
+    \item You can anticipate failure modes (locks, load spikes, bad plans) and design around them.
+\end{itemize}

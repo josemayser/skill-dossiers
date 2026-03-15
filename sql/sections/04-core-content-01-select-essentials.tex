@@ -1,0 +1,94 @@
+\section{Core Content}
+
+\subsection{SELECT Essentials}
+
+\subsubsection{The SELECT query mental model (FROM $\rightarrow$ WHERE $\rightarrow$ 
+GROUP BY $\rightarrow$ HAVING $\rightarrow$ SELECT $\rightarrow$ ORDER BY $\rightarrow$ LIMIT)}
+\J A \texttt{SELECT} query retrieves data from one or more tables. At a minimum, it has:
+\begin{itemize}
+  \item \texttt{SELECT} (what columns/expressions you want)
+  \item \texttt{FROM} (where the data comes from)
+\end{itemize}
+You can then refine the result using \texttt{WHERE}, \texttt{ORDER BY}, and \texttt{LIMIT/OFFSET}.
+
+\M Even though you write \texttt{SELECT} first, SQL is conceptually processed in this order:
+\begin{enumerate}
+  \item \texttt{FROM} (choose source tables / build the row set)
+  \item \texttt{JOIN ... ON} (combine tables)
+  \item \texttt{WHERE} (filter rows)
+  \item \texttt{GROUP BY} (group rows)
+  \item \texttt{HAVING} (filter groups)
+  \item \texttt{SELECT} (compute the output columns)
+  \item \texttt{ORDER BY} (sort final result)
+  \item \texttt{LIMIT/OFFSET} (return a subset of rows)
+\end{enumerate}
+This mental model explains many ''weird'' behaviors, like why you can't use a \texttt{SELECT} 
+alias inside \texttt{WHERE} in many DBs (because \texttt{WHERE} is evaluated earlier).
+
+\Sx Put filters in \texttt{WHERE} as early as possible to reduce data processed downstream. 
+Use \texttt{ORDER BY} only when you need deterministic ordering (otherwise results are not 
+guaranteed). Prefer explicit ordering when paginating.
+
+\E The logical order is not the same as the physical execution plan. The optimizer can reorder 
+operations, but correctness follows the logical model.
+
+\Pitfall Assuming results are naturally ordered (they aren't). Using \texttt{HAVING} for row filters 
+that should be in \texttt{WHERE}. Confusing \texttt{WHERE} vs \texttt{ON} in joins (changes results 
+for outer joins).
+
+\subsubsection{Filtering with WHERE (predicates, boolean logic, precedence)}
+\J \texttt{WHERE} filters rows using conditions (predicates), such as comparisons (\texttt{=}, 
+\texttt{>}, \texttt{<}), pattern matches (\texttt{LIKE}), and membership checks (\texttt{IN}).
+
+\M SQL boolean logic includes \texttt{AND}, \texttt{OR}, \texttt{NOT}. Operator precedence 
+matters: \texttt{NOT} $>$ \texttt{AND} $>$ \texttt{OR}. Use parentheses to make intent explicit. 
+For example, ''A and B or C'' is ambiguous; prefer \texttt{(A AND B) OR C} or \texttt{A AND (B OR C)}.
+
+\Sx Make filters sargable (index-friendly): avoid wrapping indexed columns in functions if possible. 
+Keep predicates explicit and readable; correctness beats cleverness.
+
+\E PostgreSQL can still use indexes in more cases than you'd expect (expression indexes exist), 
+but don't rely on it casually—design queries for clarity first, optimize when needed.
+
+\Pitfall Missing parentheses causing incorrect results. Filtering in the wrong place with outer 
+joins (\texttt{WHERE} can turn a \texttt{LEFT JOIN} into an \texttt{INNER JOIN}). Using 
+\texttt{NOT IN} when NULLs can appear (often wrong results).
+
+\subsubsection{NULL semantics (three-valued logic)}
+\J \texttt{NULL} means ''unknown / missing''. It is not equal to any value, not even another NULL. 
+Use \texttt{IS NULL} and \texttt{IS NOT NULL}.
+
+\M SQL comparisons involving NULL yield \textit{UNKNOWN}, not true/false. Example: 
+\texttt{col = NULL} is neither true nor false; it's UNKNOWN, so it won't pass a \texttt{WHERE} 
+filter. That's why \texttt{col = NULL} is almost always a bug; you want \texttt{col IS NULL}.
+
+\Sx Prefer \texttt{NOT NULL} constraints where appropriate to reduce NULL complexity. Be careful 
+with \texttt{NOT IN (subquery)} if the subquery can return NULL-this can eliminate all rows 
+unexpectedly. Prefer \texttt{NOT EXISTS}.
+
+\E NULL handling becomes critical in analytics and outer joins. For reporting, sometimes you use 
+\texttt{COALESCE(col, default)} intentionally, but you should understand whether you're replacing 
+''unknown'' with a real value.
+
+\Pitfall Using \texttt{= NULL} instead of \texttt{IS NULL}. \texttt{NOT IN} with NULLs producing 
+surprising empty results. Assuming \texttt{COUNT(column)} counts NULLs (it doesn't); use 
+\texttt{COUNT(*)} to count rows.
+
+\subsubsection{ORDER BY, LIMIT, OFFSET (determinism and pagination basics)}
+\J \texttt{ORDER BY} sorts results. \texttt{LIMIT} restricts the number of rows returned. 
+\texttt{OFFSET} skips rows (commonly used for pagination).
+
+\M Without \texttt{ORDER BY}, row order is not guaranteed. Pagination with \texttt{OFFSET} 
+can get slower for large offsets because the DB may still scan and discard rows.
+
+\Sx Always define a deterministic ordering for pagination, usually by a unique column 
+(\texttt{id}, or \texttt{timestamp + id}). For large datasets, prefer keyset pagination 
+(cursor-based) over offset pagination.
+
+\E Keyset pagination typically looks like: \texttt{WHERE (created\_at, id) > 
+(:lastCreatedAt, :lastId) ORDER BY created\_at, id LIMIT 50}. This scales better and avoids 
+drifting results when data changes.
+
+\Pitfall Paginating without a stable \texttt{ORDER BY} (duplicate/missing rows across pages). 
+Using OFFSET for very deep pages and expecting good performance. Sorting on non-indexed columns 
+for large datasets without understanding cost.

@@ -1,0 +1,81 @@
+\subsection{Joins \& Relational Thinking}
+
+\subsubsection{Why joins exist (relational model intuition)}
+\J A \texttt{JOIN} combines rows from two tables based on a matching condition (usually a key 
+relationship). Joins let you query related data without storing everything in one table.
+
+\M Conceptually, a join builds a combined row set: it takes rows from table A and table B, 
+applies the join condition (for example, \texttt{a.customer\_id = c.id}), and returns matching 
+combinations depending on join type.
+
+\Sx Join only what you need (select the required columns). Prefer clear join keys and enforce them 
+with constraints when possible. Always validate expected cardinality (one-to-one, one-to-many, 
+many-to-many) to prevent row explosions.
+
+\E Performance-wise, the optimizer can choose different join strategies (nested loop, hash join, 
+merge join). You don't need internals early, but you must learn to read plans later.
+
+\Pitfall Joining tables without understanding cardinality can duplicate rows. Joining without 
+filtering early can create huge intermediate sets.
+
+\subsubsection{INNER JOIN vs LEFT JOIN (and when results change)}
+\J \texttt{INNER JOIN} returns only rows that match in both tables. \texttt{LEFT JOIN} returns 
+all rows from the left table, plus matching rows from the right; non-matching right columns become 
+\texttt{NULL}.
+
+\M \texttt{LEFT JOIN} preserves left-side rows even when no match exists. This is how you query 
+''all customers and their orders (if any)''.
+
+\Sx Choose join type based on the business question: ''only those with matches'' $\rightarrow$ inner; 
+''include even those without matches'' $\rightarrow$ left. Be careful: placing conditions in 
+\texttt{WHERE} can turn a LEFT JOIN into an INNER JOIN unintentionally.
+
+\E In PostgreSQL, the planner can reorder joins, but outer join semantics restrict reordering. 
+Learn to spot when the join type forces plan shape.
+
+\Pitfall Using LEFT JOIN but filtering the right table in \texttt{WHERE} drops null-extended rows.
+
+\subsubsection{WHERE vs ON in outer joins (critical senior topic)}
+\J \texttt{ON} defines how rows match during the join. \texttt{WHERE} filters rows after the join.
+
+\M With \texttt{LEFT JOIN}, filtering conditions on the right table belong in \texttt{ON} if you 
+still want unmatched left rows.
+
+\Sx If you want to preserve left rows, put right-table conditions in \texttt{ON}. If you want 
+to drop unmatched rows, put conditions in \texttt{WHERE} (effectively inner join behavior).
+
+\E This is one of the most common causes of ''why did my LEFT JOIN act like INNER JOIN?'' bugs in 
+production.
+
+\Pitfall Right-table filters in \texttt{WHERE} eliminate NULL-extended rows and change the result set.
+
+\subsubsection{Join multiplicity (why row counts ''explode'')}
+\J If one row in table A matches multiple rows in table B, the result will contain multiple rows 
+for that A row.
+
+\M One-to-one: 1 match $\rightarrow$ 1 output row. One-to-many: 1 match $\rightarrow$ many output 
+rows. Many-to-many: many matches on both sides $\rightarrow$ potentially huge outputs.
+
+\Sx Always predict expected cardinality before joining. If you need one row per entity, consider 
+aggregation (\texttt{GROUP BY}), window functions (for example \texttt{ROW\_NUMBER} to select 
+''latest''), and use \texttt{DISTINCT} with caution.
+
+\E Duplicate explosion is often a symptom of poor join conditions or missing constraints 
+(for example, missing unique keys).
+
+\Pitfall Using \texttt{DISTINCT} to ''fix'' duplicates without understanding why they happen, hides 
+bugs and can be expensive.
+
+\subsubsection{Anti-joins: finding ''missing'' relationships (NOT EXISTS)}
+\J An anti-join finds rows in A that have no match in B.
+
+\M The safest pattern is \texttt{NOT EXISTS (subquery)}. This avoids common NULL issues seen with 
+\texttt{NOT IN}.
+
+\Sx Prefer \texttt{NOT EXISTS} over \texttt{NOT IN} when the subquery might return \texttt{NULL}. 
+Keep anti-join subqueries selective and indexed where possible.
+
+\E PostgreSQL can optimize \texttt{NOT EXISTS} efficiently in many cases, especially with proper 
+indexes.
+
+\Pitfall Using \texttt{NOT IN (subquery)} can return empty results if the subquery contains NULL.

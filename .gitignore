@@ -49,3 +49,6 @@ Thumbs.db
 .idea/
 *.iml
 .vscode/
+
+# === PDF files ===
+*.pdf

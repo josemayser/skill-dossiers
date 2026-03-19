@@ -15,8 +15,11 @@ many-to-many) to prevent row explosions.
 \E Performance-wise, the optimizer can choose different join strategies (nested loop, hash join, 
 merge join). You don't need internals early, but you must learn to read plans later.
 
-\Pitfall Joining tables without understanding cardinality can duplicate rows. Joining without 
-filtering early can create huge intermediate sets.
+\Pitfall
+\begin{itemize}
+  \item Joining tables without understanding cardinality can duplicate rows.
+  \item Joining without filtering early can create huge intermediate sets.
+\end{itemize}
 
 \subsubsection{INNER JOIN vs LEFT JOIN (and when results change)}
 \J \texttt{INNER JOIN} returns only rows that match in both tables. \texttt{LEFT JOIN} returns 
@@ -33,7 +36,10 @@ all rows from the left table, plus matching rows from the right; non-matching ri
 \E In PostgreSQL, the planner can reorder joins, but outer join semantics restrict reordering. 
 Learn to spot when the join type forces plan shape.
 
-\Pitfall Using LEFT JOIN but filtering the right table in \texttt{WHERE} drops null-extended rows.
+\Pitfall
+\begin{itemize}
+  \item Using LEFT JOIN but filtering the right table in \texttt{WHERE} drops null-extended rows.
+\end{itemize}
 
 \subsubsection{WHERE vs ON in outer joins (critical senior topic)}
 \J \texttt{ON} defines how rows match during the join. \texttt{WHERE} filters rows after the join.
@@ -47,7 +53,11 @@ to drop unmatched rows, put conditions in \texttt{WHERE} (effectively inner join
 \E This is one of the most common causes of ''why did my LEFT JOIN act like INNER JOIN?'' bugs in 
 production.
 
-\Pitfall Right-table filters in \texttt{WHERE} eliminate NULL-extended rows and change the result set.
+\newpage
+\Pitfall
+\begin{itemize}
+  \item Placing conditions in \texttt{WHERE} can turn a LEFT JOIN into an INNER JOIN unintentionally.
+\end{itemize}
 
 \subsubsection{Join multiplicity (why row counts ''explode'')}
 \J If one row in table A matches multiple rows in table B, the result will contain multiple rows 
@@ -63,8 +73,11 @@ aggregation (\texttt{GROUP BY}), window functions (for example \texttt{ROW\_NUMB
 \E Duplicate explosion is often a symptom of poor join conditions or missing constraints 
 (for example, missing unique keys).
 
-\Pitfall Using \texttt{DISTINCT} to ''fix'' duplicates without understanding why they happen, hides 
-bugs and can be expensive.
+\Pitfall
+\begin{itemize}
+  \item Using \texttt{DISTINCT} to ''fix'' duplicates without understanding why they happen, hides 
+  bugs and can be expensive.
+\end{itemize}
 
 \subsubsection{Anti-joins: finding ''missing'' relationships (NOT EXISTS)}
 \J An anti-join finds rows in A that have no match in B.
@@ -78,4 +91,7 @@ Keep anti-join subqueries selective and indexed where possible.
 \E PostgreSQL can optimize \texttt{NOT EXISTS} efficiently in many cases, especially with proper 
 indexes.
 
-\Pitfall Using \texttt{NOT IN (subquery)} can return empty results if the subquery contains NULL.
+\Pitfall
+\begin{itemize}
+  \item Using \texttt{NOT IN (subquery)} can return empty results if the subquery contains NULL.
+\end{itemize}

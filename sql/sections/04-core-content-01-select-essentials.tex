@@ -32,9 +32,12 @@ guaranteed). Prefer explicit ordering when paginating.
 \E The logical order is not the same as the physical execution plan. The optimizer can reorder 
 operations, but correctness follows the logical model.
 
-\Pitfall Assuming results are naturally ordered (they aren't). Using \texttt{HAVING} for row filters 
-that should be in \texttt{WHERE}. Confusing \texttt{WHERE} vs \texttt{ON} in joins (changes results 
-for outer joins).
+\Pitfall
+\begin{itemize}
+  \item Assuming results are naturally ordered (they aren't).
+  \item Using \texttt{HAVING} for row filters that should be in \texttt{WHERE}.
+  \item Confusing \texttt{WHERE} vs \texttt{ON} in joins (changes results for outer joins).
+\end{itemize}
 
 \subsubsection{Filtering with WHERE (predicates, boolean logic, precedence)}
 \J \texttt{WHERE} filters rows using conditions (predicates), such as comparisons (\texttt{=}, 
@@ -50,9 +53,13 @@ Keep predicates explicit and readable; correctness beats cleverness.
 \E PostgreSQL can still use indexes in more cases than you'd expect (expression indexes exist), 
 but don't rely on it casually—design queries for clarity first, optimize when needed.
 
-\Pitfall Missing parentheses causing incorrect results. Filtering in the wrong place with outer 
-joins (\texttt{WHERE} can turn a \texttt{LEFT JOIN} into an \texttt{INNER JOIN}). Using 
-\texttt{NOT IN} when NULLs can appear (often wrong results).
+\Pitfall
+\begin{itemize}
+  \item Missing parentheses causing incorrect results.
+  \item Filtering in the wrong place with outer joins (\texttt{WHERE} can turn a 
+  \texttt{LEFT JOIN} into an \texttt{INNER JOIN}).
+  \item Using \texttt{NOT IN} when NULLs can appear (often wrong results).
+\end{itemize}
 
 \subsubsection{NULL semantics (three-valued logic)}
 \J \texttt{NULL} means ''unknown / missing''. It is not equal to any value, not even another NULL. 
@@ -70,9 +77,13 @@ unexpectedly. Prefer \texttt{NOT EXISTS}.
 \texttt{COALESCE(col, default)} intentionally, but you should understand whether you're replacing 
 ''unknown'' with a real value.
 
-\Pitfall Using \texttt{= NULL} instead of \texttt{IS NULL}. \texttt{NOT IN} with NULLs producing 
-surprising empty results. Assuming \texttt{COUNT(column)} counts NULLs (it doesn't); use 
-\texttt{COUNT(*)} to count rows.
+\Pitfall
+\begin{itemize}
+  \item Using \texttt{= NULL} instead of \texttt{IS NULL}.
+  \item \texttt{NOT IN} with NULLs producing surprising empty results.
+  \item Assuming \texttt{COUNT(column)} counts NULLs (it doesn't); use \texttt{COUNT(*)} 
+  to count rows.
+\end{itemize}
 
 \subsubsection{ORDER BY, LIMIT, OFFSET (determinism and pagination basics)}
 \J \texttt{ORDER BY} sorts results. \texttt{LIMIT} restricts the number of rows returned. 
@@ -89,6 +100,10 @@ can get slower for large offsets because the DB may still scan and discard rows.
 (:lastCreatedAt, :lastId) ORDER BY created\_at, id LIMIT 50}. This scales better and avoids 
 drifting results when data changes.
 
-\Pitfall Paginating without a stable \texttt{ORDER BY} (duplicate/missing rows across pages). 
-Using OFFSET for very deep pages and expecting good performance. Sorting on non-indexed columns 
-for large datasets without understanding cost.
+\newpage
+\Pitfall
+\begin{itemize}
+  \item Paginating without a stable \texttt{ORDER BY} (duplicate/missing rows across pages).
+  \item Using OFFSET for very deep pages and expecting good performance.
+  \item Sorting on non-indexed columns for large datasets without understanding cost.
+\end{itemize}

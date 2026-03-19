@@ -1,0 +1,152 @@
+\subsection{Aggregation \& Grouping}
+
+\subsubsection{What aggregation means (rows $\rightarrow$ groups)}
+\J Aggregation summarizes many rows into fewer rows (often one row per group). You typically 
+use aggregate functions like \texttt{COUNT}, \texttt{SUM}, \texttt{AVG}, \texttt{MIN}, 
+and \texttt{MAX}.
+
+\M Conceptually, aggregation works like this:
+\begin{enumerate}
+  \item Build the row set (FROM/JOIN).
+  \item Filter rows (\texttt{WHERE}).
+  \item Group rows (\texttt{GROUP BY}).
+  \item Compute aggregates per group.
+\end{enumerate}
+If you don't use \texttt{GROUP BY}, the whole result is treated as a single group.
+
+\Sx Always be explicit about what your groups represent (business meaning). Before writing 
+the query, state it in plain language: ''One row per customer'', ''One row per month'', etc. 
+This prevents subtle correctness bugs.
+
+\E Optimizers can compute aggregates using different strategies (hash aggregate vs sort-based 
+aggregate). You don't need internals yet, but you should learn to recognize when grouping is 
+the expensive part of a query.
+
+\Pitfall
+\begin{itemize}
+  \item Forgetting what ''one row per group'' means and accidentally returning duplicate groups due 
+  to join multiplicity upstream.
+\end{itemize}
+
+\subsubsection{GROUP BY correctness rules (and why SQL complains)}
+\J When you use \texttt{GROUP BY}, every selected column must be either:
+\begin{itemize}
+  \item included in the \texttt{GROUP BY}, or
+  \item wrapped in an aggregate function.
+\end{itemize}
+
+\M This rule exists because, within a group, a non-aggregated column could have multiple values. 
+SQL forces you to be explicit so results are deterministic.
+
+\Sx If you find yourself wanting to select a non-grouped column, you usually need one of 
+these patterns:
+\begin{itemize}
+  \item Add the column to \texttt{GROUP BY} (if it truly defines the group), or
+  \item Use a window function (e.g., pick ''latest row'' with \texttt{ROW\_NUMBER}), or
+  \item Aggregate intentionally (e.g., \texttt{MIN(created\_at)}), making the choice explicit.
+\end{itemize}
+
+\E PostgreSQL supports functional dependency optimizations in some cases (e.g., selecting 
+columns functionally determined by a primary key), but you should not rely on this unless you 
+fully understand the guarantees and your schema constraints.
+
+\Pitfall
+\begin{itemize}
+  \item Using \texttt{DISTINCT} to ''fix'' grouping problems instead of correcting the grouping 
+  logic or the joins that caused duplication.
+\end{itemize}
+
+\subsubsection{HAVING vs WHERE (filtering rows vs filtering groups)}
+\J \texttt{WHERE} filters rows before grouping. \texttt{HAVING} filters groups after aggregation.
+
+\M Logical order:
+\begin{itemize}
+  \item \texttt{WHERE} happens before \texttt{GROUP BY}.
+  \item \texttt{HAVING} happens after aggregates are computed.
+\end{itemize}
+So \texttt{HAVING} can use aggregate expressions like \texttt{COUNT(*) > 10}.
+
+\Sx Use \texttt{WHERE} for normal predicates whenever possible, because it reduces the amount 
+of data that needs to be grouped. Reserve \texttt{HAVING} for conditions that truly depend on 
+aggregates.
+
+\E In performance tuning, a common win is moving predicates from \texttt{HAVING} to 
+\texttt{WHERE} when they don't depend on aggregates.
+
+\Pitfall
+\begin{itemize}
+  \item Putting simple row filters in \texttt{HAVING} can make queries significantly slower 
+  and harder to understand.
+\end{itemize}
+
+\subsubsection{COUNT pitfalls (COUNT(*), COUNT(column), and NULLs)}
+\J \texttt{COUNT(*)} counts rows. \texttt{COUNT(column)} counts non-NULL values in that column.
+
+\M Because NULL represents ''unknown'', \texttt{COUNT(column)} ignores NULLs. This is often 
+correct, but you must know what you're counting:
+\begin{itemize}
+  \item If you want ''number of rows'', use \texttt{COUNT(*)}.
+  \item If you want ''number of rows where a field is present'', use \texttt{COUNT(column)}.
+\end{itemize}
+
+\Sx When counting distinct entities across joins, be explicit:
+\begin{itemize}
+  \item \texttt{COUNT(DISTINCT entity\_id)} avoids overcounting caused by join multiplicity.
+  \item But \texttt{COUNT(DISTINCT ...)} can be expensive; fix join shape when possible.
+\end{itemize}
+
+\E For complex distinct counting, sometimes you restructure queries using CTEs/subqueries 
+to reduce data volume before applying \texttt{COUNT(DISTINCT ...)}.
+
+\Pitfall
+\begin{itemize}
+  \item Overcounting because joins multiply rows. Misinterpreting \texttt{COUNT(column)} 
+  when NULLs exist.
+\end{itemize}
+
+\subsubsection{DISTINCT with aggregation (when it helps, when it hides bugs)}
+\J \texttt{DISTINCT} removes duplicate rows from the result set.
+
+\M In aggregation, you might use:
+\begin{itemize}
+  \item \texttt{COUNT(DISTINCT x)} to count unique values,
+  \item or \texttt{SELECT DISTINCT ...} to remove duplicate rows.
+\end{itemize}
+
+\newpage
+\Sx Treat \texttt{DISTINCT} as a tool, not a band-aid. If you need \texttt{DISTINCT} because 
+the join or grouping logic creates unintended duplicates, fix the root cause first. Use 
+\texttt{DISTINCT} when duplicates are semantically expected and you want a unique set.
+
+\E In large datasets, \texttt{DISTINCT} can be expensive. For performance, you may prefer 
+redesigning the query (pre-aggregation, dedup in a subquery, or correct join keys) rather than 
+relying on \texttt{DISTINCT} late.
+
+\Pitfall
+\begin{itemize}
+  \item Adding \texttt{DISTINCT} to ''make the numbers look right'' without understanding 
+  where duplicates come from.
+\end{itemize}
+
+\subsubsection{Practical grouping patterns (the ones you actually use)}
+\J Common patterns:
+\begin{itemize}
+  \item ''Total per entity'': \texttt{GROUP BY entity\_id}
+  \item ''Totals by category'': \texttt{GROUP BY category}
+  \item ''Totals over time'': \texttt{GROUP BY date\_trunc('month', created\_at)} (PostgreSQL)
+\end{itemize}
+
+\M Grouping over time often requires careful date handling (time zones, truncation) and 
+clear definitions of the time bucket.
+
+\Sx For time series in production, define a consistent time zone strategy and a clear 
+''source of truth'' timestamp. This prevents subtle reporting mismatches.
+
+\E For analytics-heavy needs, you may later add more advanced patterns (window functions, rollups) 
+but the core is: define the grouping key precisely and keep it consistent.
+
+\Pitfall
+\begin{itemize}
+  \item Grouping by a computed expression without understanding its stability (time zones, 
+  rounding, formatting).
+\end{itemize}
